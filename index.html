@@ -22,18 +22,6 @@
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg);font-family:var(--font);color:var(--text);min-height:100vh;padding:2rem 1rem}
   .wrap{max-width:780px;margin:0 auto}
-
-  /* Banner */
-  .banner{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--blue-bg);border:0.5px solid var(--blue-border);border-radius:var(--radius-lg);padding:12px 16px;margin-bottom:1.5rem;flex-wrap:wrap}
-  .banner-text{font-size:13px;color:var(--blue-text);display:flex;align-items:center;gap:8px}
-  .banner-btns{display:flex;gap:8px}
-  .banner-btn{font-size:12px;padding:4px 12px;border-radius:var(--radius);border:0.5px solid var(--blue-border);background:var(--surface);color:var(--blue-text);cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:5px;transition:background .12s}
-  .banner-btn:hover{background:#d0e5f8}
-  .banner-btn.primary{background:var(--blue-text);color:#fff;border-color:var(--blue-text)}
-  .banner-btn.primary:hover{background:#0a3a6a}
-  .banner-dismiss{background:none;border:none;cursor:pointer;color:var(--blue-text);font-size:16px;line-height:1;padding:2px 4px;opacity:.6}
-  .banner-dismiss:hover{opacity:1}
-
   header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px}
   .brand{display:flex;align-items:center;gap:10px}
   .brand-icon{width:36px;height:36px;background:var(--text);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px}
@@ -89,32 +77,14 @@
   .edit-btn:hover{background:var(--bg)}
   .empty{text-align:center;padding:2.5rem;color:var(--text-muted);font-size:14px;border:0.5px dashed var(--border);border-radius:var(--radius-lg)}
   footer{margin-top:1.25rem;display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;align-items:center}
-  .unsaved-dot{width:7px;height:7px;border-radius:50%;background:var(--amber-text);display:inline-block;margin-right:4px;vertical-align:2px}
-  .footer-btns{display:flex;gap:8px}
+  .sync{font-size:12px;color:var(--text-hint);display:flex;align-items:center;gap:5px}
+  .sync-dot{width:6px;height:6px;border-radius:50%;background:#97C459;flex-shrink:0;transition:background .3s}
+  .sync-dot.saving{background:#EF9F27}
   @media(max-width:480px){.stats{grid-template-columns:repeat(2,1fr)}.input-row{flex-direction:column}}
 </style>
 </head>
 <body>
 <div class="wrap">
-
-  <!-- Load banner (shown on open if no data loaded yet) -->
-  <div class="banner" id="load-banner" style="display:none">
-    <span class="banner-text"><i class="ti ti-info-circle" aria-hidden="true" style="font-size:15px"></i>Load a previously saved file to restore your items.</span>
-    <div class="banner-btns">
-      <button class="banner-btn primary" onclick="triggerImport()"><i class="ti ti-upload" aria-hidden="true" style="font-size:13px"></i>Load file</button>
-      <button class="banner-btn" onclick="dismissBanner()">Start fresh</button>
-    </div>
-  </div>
-
-  <!-- Unsaved banner -->
-  <div class="banner" id="unsaved-banner" style="display:none;background:var(--amber-bg);border-color:var(--amber-border)">
-    <span class="banner-text" style="color:var(--amber-text)"><span class="unsaved-dot"></span>You have unsaved changes.</span>
-    <div class="banner-btns">
-      <button class="banner-btn primary" onclick="saveJSON()" style="background:var(--amber-text);border-color:var(--amber-text)"><i class="ti ti-download" aria-hidden="true" style="font-size:13px"></i>Save now</button>
-      <button class="banner-dismiss" onclick="document.getElementById('unsaved-banner').style.display='none'" aria-label="Dismiss">×</button>
-    </div>
-  </div>
-
   <header>
     <div class="brand">
       <div class="brand-icon"><i class="ti ti-parking" aria-hidden="true"></i></div>
@@ -154,78 +124,43 @@
   <div class="list" id="list"></div>
 
   <footer>
-    <span style="font-size:12px;color:var(--text-hint)" id="file-lbl">No file loaded</span>
-    <div class="footer-btns">
-      <button class="btn" onclick="copyAll()"><i class="ti ti-copy" aria-hidden="true"></i><span id="copy-lbl">Copy all</span></button>
-      <button class="btn" onclick="triggerImport()"><i class="ti ti-upload" aria-hidden="true"></i>Load</button>
-      <button class="btn btn-primary" onclick="saveJSON()"><i class="ti ti-download" aria-hidden="true"></i>Save</button>
-    </div>
+    <span class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-lbl">All saved</span></span>
+    <button class="btn" onclick="copyAll()"><i class="ti ti-copy" aria-hidden="true"></i><span id="copy-lbl">Copy all</span></button>
   </footer>
-  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
 </div>
 
 <script>
 const CAT_COLORS={Design:'#378ADD',Data:'#1D9E75',Logic:'#7F77DD',Content:'#D85A30',Config:'#D4537E',Question:'#BA7517',Other:'#888780'};
 const STATUS_CYCLE={open:'inprogress',inprogress:'closed',closed:'open'};
 const GROUPS=['TP','Non TP'];
+const LS_KEY='tenantpulse-pl-v1';
 
-let notes=[];
-let nextId=1;
-let activeFilter='all';
-let editingId=null;
-let hasUnsaved=false;
-let currentFileName='tenantpulse-parking-lot.json';
+let notes=[],nextId=1,activeFilter='all',editingId=null,saveTimer=null;
 
 function fmt(){return new Date().toLocaleDateString('en-AU',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
 
-function markUnsaved(){
-  hasUnsaved=true;
-  document.getElementById('unsaved-banner').style.display='flex';
+function setSyncStatus(saving){
+  document.getElementById('sync-dot').className='sync-dot'+(saving?' saving':'');
+  document.getElementById('sync-lbl').textContent=saving?'Saving…':'All saved';
 }
 
-function markSaved(){
-  hasUnsaved=false;
-  document.getElementById('unsaved-banner').style.display='none';
+function persist(){
+  try{localStorage.setItem(LS_KEY,JSON.stringify({notes,nextId}));}catch(e){}
+  setSyncStatus(false);
 }
 
-function saveJSON(){
-  const blob=new Blob([JSON.stringify({notes,nextId},null,2)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=currentFileName;
-  a.click();
-  markSaved();
+function scheduleSave(){
+  setSyncStatus(true);
+  if(saveTimer)clearTimeout(saveTimer);
+  saveTimer=setTimeout(persist,500);
 }
 
-function triggerImport(){
-  document.getElementById('importFile').click();
-}
-
-function importJSON(e){
-  const file=e.target.files[0];
-  if(!file)return;
-  currentFileName=file.name;
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    try{
-      const data=JSON.parse(ev.target.result);
-      if(Array.isArray(data.notes)){
-        notes=data.notes;
-        nextId=data.nextId||(notes.length?Math.max(...notes.map(n=>n.id))+1:1);
-        document.getElementById('load-banner').style.display='none';
-        document.getElementById('file-lbl').textContent='Loaded: '+file.name;
-        markSaved();
-        render();
-      }else{alert('Invalid file.');}
-    }catch(err){alert('Could not read file.');}
-  };
-  reader.readAsText(file);
-  e.target.value='';
-}
-
-function dismissBanner(){
-  document.getElementById('load-banner').style.display='none';
-  document.getElementById('file-lbl').textContent='New session';
+function load(){
+  try{
+    const raw=localStorage.getItem(LS_KEY);
+    if(raw){const d=JSON.parse(raw);notes=d.notes||[];nextId=d.nextId||(notes.length?Math.max(...notes.map(n=>n.id))+1:1);}
+  }catch(e){notes=[];nextId=1;}
+  render();
 }
 
 function addNote(){
@@ -233,28 +168,23 @@ function addNote(){
   const text=inp.value.trim();
   if(!text)return;
   notes.unshift({id:nextId++,grp:document.getElementById('grp').value,cat:document.getElementById('cat').value,text,status:'open',ts:fmt()});
-  inp.value='';
-  render();
-  markUnsaved();
+  inp.value='';render();scheduleSave();
 }
 document.getElementById('noteInput').addEventListener('keydown',e=>{if(e.key==='Enter')addNote();});
 
-function cycleStatus(id){
-  const n=notes.find(n=>n.id===id);
-  if(n){n.status=STATUS_CYCLE[n.status];render();markUnsaved();}
-}
+function cycleStatus(id){const n=notes.find(n=>n.id===id);if(n){n.status=STATUS_CYCLE[n.status];render();scheduleSave();}}
 function startEdit(id){editingId=id;render();const inp=document.getElementById('edit-'+id);if(inp){inp.focus();inp.select();}}
 function saveEdit(id){
   const inp=document.getElementById('edit-'+id);
   if(inp){const n=notes.find(n=>n.id===id);if(n&&inp.value.trim())n.text=inp.value.trim();}
-  editingId=null;render();markUnsaved();
+  editingId=null;render();scheduleSave();
 }
 function cancelEdit(){editingId=null;render();}
 function deleteNote(id){
   if(!confirm('Delete this item?'))return;
   notes=notes.filter(n=>n.id!==id);
   if(editingId===id)editingId=null;
-  render();markUnsaved();
+  render();scheduleSave();
 }
 
 function setFilter(f){
@@ -333,16 +263,7 @@ function render(){
   });
 }
 
-/* Warn before close if unsaved */
-window.addEventListener('beforeunload',e=>{
-  if(hasUnsaved){e.preventDefault();e.returnValue='';}
-});
-
-/* Show load banner on open */
-window.addEventListener('load',()=>{
-  document.getElementById('load-banner').style.display='flex';
-  render();
-});
+load();
 </script>
 </body>
 </html>
