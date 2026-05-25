@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TenantPulse — Parking lot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+  :root{
+    --bg:#F7F6F3;--surface:#FFFFFF;--border:#E4E2DA;--border-subtle:#EDEBE5;
+    --text:#1A1916;--text-muted:#6B6960;--text-hint:#A09D95;
+    --radius:8px;--radius-lg:12px;
+    --font:'DM Sans',sans-serif;--font-mono:'DM Mono',monospace;
+    --blue-bg:#E6F1FB;--blue-text:#0C447C;--blue-border:#85B7EB;
+    --amber-bg:#FAEEDA;--amber-text:#633806;--amber-border:#EF9F27;
+    --green-bg:#EAF3DE;--green-text:#27500A;--green-border:#97C459;
+    --purple-bg:#EEEDFE;--purple-text:#3C3489;
+    --sand-bg:#F1EFE8;--sand-text:#444441;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);font-family:var(--font);color:var(--text);min-height:100vh;padding:2rem 1rem}
+  .wrap{max-width:780px;margin:0 auto}
+
+  /* Banner */
+  .banner{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--blue-bg);border:0.5px solid var(--blue-border);border-radius:var(--radius-lg);padding:12px 16px;margin-bottom:1.5rem;flex-wrap:wrap}
+  .banner-text{font-size:13px;color:var(--blue-text);display:flex;align-items:center;gap:8px}
+  .banner-btns{display:flex;gap:8px}
+  .banner-btn{font-size:12px;padding:4px 12px;border-radius:var(--radius);border:0.5px solid var(--blue-border);background:var(--surface);color:var(--blue-text);cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:5px;transition:background .12s}
+  .banner-btn:hover{background:#d0e5f8}
+  .banner-btn.primary{background:var(--blue-text);color:#fff;border-color:var(--blue-text)}
+  .banner-btn.primary:hover{background:#0a3a6a}
+  .banner-dismiss{background:none;border:none;cursor:pointer;color:var(--blue-text);font-size:16px;line-height:1;padding:2px 4px;opacity:.6}
+  .banner-dismiss:hover{opacity:1}
+
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand-icon{width:36px;height:36px;background:var(--text);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px}
+  .brand-name{font-size:15px;font-weight:500;letter-spacing:-.01em}
+  .brand-sub{font-size:12px;color:var(--text-muted);margin-top:1px}
+  .pills{display:flex;gap:5px;flex-wrap:wrap}
+  .pill{font-size:12px;padding:4px 12px;border-radius:20px;border:0.5px solid var(--border);cursor:pointer;color:var(--text-muted);background:var(--surface);font-family:var(--font);transition:all .15s;line-height:1.6}
+  .pill:hover{border-color:#C0BDB5}
+  .pill.a-all{background:var(--text);color:#fff;border-color:var(--text)}
+  .pill.a-open{background:var(--blue-bg);color:var(--blue-text);border-color:var(--blue-border)}
+  .pill.a-inprogress{background:var(--amber-bg);color:var(--amber-text);border-color:var(--amber-border)}
+  .pill.a-closed{background:var(--green-bg);color:var(--green-text);border-color:var(--green-border)}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.5rem}
+  .stat{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;text-align:center}
+  .stat-n{font-size:22px;font-weight:500;line-height:1.1}
+  .stat-l{font-size:11px;color:var(--text-muted);margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+  .input-row{display:flex;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap}
+  select,input[type=text]{font-family:var(--font);font-size:13px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;height:38px;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s}
+  select:focus,input[type=text]:focus{border-color:#A09D95}
+  .sel-grp{width:100px;flex-shrink:0}
+  .sel-cat{width:115px;flex-shrink:0}
+  .note-input{flex:1;min-width:160px;font-size:14px}
+  .btn{height:38px;padding:0 16px;font-size:13px;font-family:var(--font);cursor:pointer;white-space:nowrap;border-radius:var(--radius);flex-shrink:0;border:0.5px solid var(--border);background:var(--surface);color:var(--text);display:inline-flex;align-items:center;gap:6px;transition:background .12s,border-color .12s}
+  .btn:hover{background:var(--bg);border-color:#C0BDB5}
+  .btn-primary{background:var(--text);color:#fff;border-color:var(--text)}
+  .btn-primary:hover{background:#2C2C2A;border-color:#2C2C2A}
+  .list{display:flex;flex-direction:column;gap:5px}
+  .grp-header{display:flex;align-items:center;gap:8px;padding:4px 0;margin-top:10px}
+  .grp-line{flex:1;height:0.5px;background:var(--border-subtle)}
+  .grp-count{font-size:11px;color:var(--text-hint)}
+  .grp-badge{font-size:11px;padding:2px 10px;border-radius:20px;font-weight:500;letter-spacing:.01em}
+  .g-tp{background:var(--purple-bg);color:var(--purple-text)}
+  .g-nontp{background:var(--sand-bg);color:var(--sand-text)}
+  .item{border-radius:var(--radius-lg);border:0.5px solid var(--border);background:var(--surface);overflow:hidden;transition:opacity .15s}
+  .item.closed{opacity:.4}
+  .item-row{display:flex;align-items:flex-start;gap:10px;padding:11px 14px}
+  .dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+  .body{flex:1;min-width:0}
+  .note{font-size:14px;line-height:1.45;word-break:break-word}
+  .note.struck{text-decoration:line-through;color:var(--text-muted)}
+  .meta{font-size:12px;color:var(--text-muted);margin-top:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .s-badge{font-size:11px;padding:2px 9px;border-radius:20px;font-weight:500;cursor:pointer;border:none;font-family:var(--font);line-height:1.6}
+  .s-open{background:var(--blue-bg);color:var(--blue-text)}
+  .s-inprogress{background:var(--amber-bg);color:var(--amber-text)}
+  .s-closed{background:var(--green-bg);color:var(--green-text)}
+  .actions{display:flex;gap:2px;flex-shrink:0;align-items:center}
+  .ic-btn{background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px 6px;border-radius:var(--radius);font-size:16px;line-height:1;transition:all .12s;font-family:var(--font)}
+  .ic-btn:hover{color:var(--text);background:var(--bg)}
+  .edit-row{padding:0 14px 12px 32px;display:flex;gap:8px;flex-wrap:wrap}
+  .edit-input{flex:1;min-width:120px;font-size:14px;height:32px;border-radius:var(--radius);border:0.5px solid var(--border);padding:0 10px;color:var(--text);background:var(--surface);font-family:var(--font);outline:none}
+  .edit-input:focus{border-color:#A09D95}
+  .edit-btn{height:32px;padding:0 12px;font-size:12px;cursor:pointer;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--surface);color:var(--text);font-family:var(--font);transition:background .12s}
+  .edit-btn:hover{background:var(--bg)}
+  .empty{text-align:center;padding:2.5rem;color:var(--text-muted);font-size:14px;border:0.5px dashed var(--border);border-radius:var(--radius-lg)}
+  footer{margin-top:1.25rem;display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;align-items:center}
+  .unsaved-dot{width:7px;height:7px;border-radius:50%;background:var(--amber-text);display:inline-block;margin-right:4px;vertical-align:2px}
+  .footer-btns{display:flex;gap:8px}
+  @media(max-width:480px){.stats{grid-template-columns:repeat(2,1fr)}.input-row{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Load banner (shown on open if no data loaded yet) -->
+  <div class="banner" id="load-banner" style="display:none">
+    <span class="banner-text"><i class="ti ti-info-circle" aria-hidden="true" style="font-size:15px"></i>Load a previously saved file to restore your items.</span>
+    <div class="banner-btns">
+      <button class="banner-btn primary" onclick="triggerImport()"><i class="ti ti-upload" aria-hidden="true" style="font-size:13px"></i>Load file</button>
+      <button class="banner-btn" onclick="dismissBanner()">Start fresh</button>
+    </div>
+  </div>
+
+  <!-- Unsaved banner -->
+  <div class="banner" id="unsaved-banner" style="display:none;background:var(--amber-bg);border-color:var(--amber-border)">
+    <span class="banner-text" style="color:var(--amber-text)"><span class="unsaved-dot"></span>You have unsaved changes.</span>
+    <div class="banner-btns">
+      <button class="banner-btn primary" onclick="saveJSON()" style="background:var(--amber-text);border-color:var(--amber-text)"><i class="ti ti-download" aria-hidden="true" style="font-size:13px"></i>Save now</button>
+      <button class="banner-dismiss" onclick="document.getElementById('unsaved-banner').style.display='none'" aria-label="Dismiss">×</button>
+    </div>
+  </div>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon"><i class="ti ti-parking" aria-hidden="true"></i></div>
+      <div>
+        <div class="brand-name">TenantPulse</div>
+        <div class="brand-sub">Parking lot</div>
+      </div>
+    </div>
+    <div class="pills">
+      <button class="pill a-all" onclick="setFilter('all')">All <span id="c-all"></span></button>
+      <button class="pill" onclick="setFilter('open')">Open <span id="c-open"></span></button>
+      <button class="pill" onclick="setFilter('inprogress')">In progress <span id="c-inprogress"></span></button>
+      <button class="pill" onclick="setFilter('closed')">Closed <span id="c-closed"></span></button>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-n" id="s-all">0</div><div class="stat-l">Total</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--blue-text)" id="s-open">0</div><div class="stat-l">Open</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--amber-text)" id="s-inprogress">0</div><div class="stat-l">In progress</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--green-text)" id="s-closed">0</div><div class="stat-l">Closed</div></div>
+  </div>
+
+  <div class="input-row">
+    <select class="sel-grp" id="grp">
+      <option value="TP">TP</option>
+      <option value="Non TP">Non TP</option>
+    </select>
+    <select class="sel-cat" id="cat">
+      <option>Design</option><option>Data</option><option>Logic</option>
+      <option>Content</option><option>Config</option><option>Question</option><option>Other</option>
+    </select>
+    <input class="note-input" type="text" id="noteInput" placeholder="Add a note and press Enter…" />
+    <button class="btn btn-primary" onclick="addNote()"><i class="ti ti-plus" aria-hidden="true"></i> Add</button>
+  </div>
+
+  <div class="list" id="list"></div>
+
+  <footer>
+    <span style="font-size:12px;color:var(--text-hint)" id="file-lbl">No file loaded</span>
+    <div class="footer-btns">
+      <button class="btn" onclick="copyAll()"><i class="ti ti-copy" aria-hidden="true"></i><span id="copy-lbl">Copy all</span></button>
+      <button class="btn" onclick="triggerImport()"><i class="ti ti-upload" aria-hidden="true"></i>Load</button>
+      <button class="btn btn-primary" onclick="saveJSON()"><i class="ti ti-download" aria-hidden="true"></i>Save</button>
+    </div>
+  </footer>
+  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+</div>
+
+<script>
+const CAT_COLORS={Design:'#378ADD',Data:'#1D9E75',Logic:'#7F77DD',Content:'#D85A30',Config:'#D4537E',Question:'#BA7517',Other:'#888780'};
+const STATUS_CYCLE={open:'inprogress',inprogress:'closed',closed:'open'};
+const GROUPS=['TP','Non TP'];
+
+let notes=[];
+let nextId=1;
+let activeFilter='all';
+let editingId=null;
+let hasUnsaved=false;
+let currentFileName='tenantpulse-parking-lot.json';
+
+function fmt(){return new Date().toLocaleDateString('en-AU',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
+
+function markUnsaved(){
+  hasUnsaved=true;
+  document.getElementById('unsaved-banner').style.display='flex';
+}
+
+function markSaved(){
+  hasUnsaved=false;
+  document.getElementById('unsaved-banner').style.display='none';
+}
+
+function saveJSON(){
+  const blob=new Blob([JSON.stringify({notes,nextId},null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=currentFileName;
+  a.click();
+  markSaved();
+}
+
+function triggerImport(){
+  document.getElementById('importFile').click();
+}
+
+function importJSON(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  currentFileName=file.name;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(Array.isArray(data.notes)){
+        notes=data.notes;
+        nextId=data.nextId||(notes.length?Math.max(...notes.map(n=>n.id))+1:1);
+        document.getElementById('load-banner').style.display='none';
+        document.getElementById('file-lbl').textContent='Loaded: '+file.name;
+        markSaved();
+        render();
+      }else{alert('Invalid file.');}
+    }catch(err){alert('Could not read file.');}
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+
+function dismissBanner(){
+  document.getElementById('load-banner').style.display='none';
+  document.getElementById('file-lbl').textContent='New session';
+}
+
+function addNote(){
+  const inp=document.getElementById('noteInput');
+  const text=inp.value.trim();
+  if(!text)return;
+  notes.unshift({id:nextId++,grp:document.getElementById('grp').value,cat:document.getElementById('cat').value,text,status:'open',ts:fmt()});
+  inp.value='';
+  render();
+  markUnsaved();
+}
+document.getElementById('noteInput').addEventListener('keydown',e=>{if(e.key==='Enter')addNote();});
+
+function cycleStatus(id){
+  const n=notes.find(n=>n.id===id);
+  if(n){n.status=STATUS_CYCLE[n.status];render();markUnsaved();}
+}
+function startEdit(id){editingId=id;render();const inp=document.getElementById('edit-'+id);if(inp){inp.focus();inp.select();}}
+function saveEdit(id){
+  const inp=document.getElementById('edit-'+id);
+  if(inp){const n=notes.find(n=>n.id===id);if(n&&inp.value.trim())n.text=inp.value.trim();}
+  editingId=null;render();markUnsaved();
+}
+function cancelEdit(){editingId=null;render();}
+function deleteNote(id){
+  if(!confirm('Delete this item?'))return;
+  notes=notes.filter(n=>n.id!==id);
+  if(editingId===id)editingId=null;
+  render();markUnsaved();
+}
+
+function setFilter(f){
+  activeFilter=f;
+  const keys=['all','open','inprogress','closed'];
+  const map={all:'a-all',open:'a-open',inprogress:'a-inprogress',closed:'a-closed'};
+  document.querySelectorAll('.pill').forEach((p,i)=>{p.className='pill';if(keys[i]===f)p.classList.add(map[f]);});
+  render();
+}
+
+function statusLabel(s){return s==='inprogress'?'In progress':s.charAt(0).toUpperCase()+s.slice(1);}
+
+function copyAll(){
+  const lines=notes.map(n=>`[${n.grp}] [${n.cat}] [${statusLabel(n.status)}] ${n.text}`).join('\n');
+  navigator.clipboard.writeText(lines).catch(()=>{});
+  const lbl=document.getElementById('copy-lbl');
+  lbl.textContent='Copied!';
+  setTimeout(()=>lbl.textContent='Copy all',1500);
+}
+
+function renderItem(n){
+  const isEditing=editingId===n.id;
+  const dot=`<div class="dot" style="background:${CAT_COLORS[n.cat]||'#888'}"></div>`;
+  const badge=`<button class="s-badge s-${n.status}" onclick="cycleStatus(${n.id})" title="Click to advance status">${statusLabel(n.status)}</button>`;
+  const catDot=`<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${CAT_COLORS[n.cat]||'#888'};vertical-align:1px"></span>`;
+  const meta=`<div class="meta">${badge}${catDot}<span>${n.cat}</span><span style="font-family:var(--font-mono);font-size:11px">${n.ts}</span></div>`;
+  if(isEditing){
+    return `<div class="item">
+      <div class="item-row">${dot}<div class="body"><div class="note" style="color:var(--text-muted);font-size:13px">${n.text}</div>${meta}</div>
+      <div class="actions"><button class="ic-btn" onclick="cancelEdit()" aria-label="Cancel"><i class="ti ti-x" aria-hidden="true"></i></button></div></div>
+      <div class="edit-row">
+        <input class="edit-input" id="edit-${n.id}" type="text" value="${n.text.replace(/"/g,'&quot;')}" />
+        <button class="edit-btn" onclick="saveEdit(${n.id})">Save</button>
+        <button class="edit-btn" onclick="cancelEdit()">Cancel</button>
+      </div>
+    </div>`;
+  }
+  return `<div class="item${n.status==='closed'?' closed':''}">
+    <div class="item-row">${dot}
+      <div class="body"><div class="note${n.status==='closed'?' struck':''}">${n.text}</div>${meta}</div>
+      <div class="actions">
+        <button class="ic-btn" onclick="startEdit(${n.id})" aria-label="Edit"><i class="ti ti-edit" aria-hidden="true"></i></button>
+        <button class="ic-btn" onclick="deleteNote(${n.id})" aria-label="Delete"><i class="ti ti-trash" aria-hidden="true"></i></button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function render(){
+  const filtered=activeFilter==='all'?notes:notes.filter(n=>n.status===activeFilter);
+  const counts={all:notes.length,open:0,inprogress:0,closed:0};
+  notes.forEach(n=>counts[n.status]++);
+  ['all','open','inprogress','closed'].forEach(k=>{
+    const c=document.getElementById('c-'+k);if(c)c.textContent=counts[k];
+    const s=document.getElementById('s-'+k);if(s)s.textContent=counts[k];
+  });
+  const lEl=document.getElementById('list');
+  if(!filtered.length){
+    lEl.innerHTML=`<div class="empty"><i class="ti ti-mood-smile" style="font-size:24px;display:block;margin-bottom:8px" aria-hidden="true"></i>No items in this view</div>`;
+    return;
+  }
+  let html='';
+  GROUPS.forEach(grp=>{
+    const items=filtered.filter(n=>n.grp===grp);
+    if(!items.length)return;
+    const cls=grp==='TP'?'g-tp':'g-nontp';
+    html+=`<div class="grp-header"><span class="grp-badge ${cls}">${grp}</span><div class="grp-line"></div><span class="grp-count">${items.length}</span></div>`;
+    html+=items.map(renderItem).join('');
+  });
+  lEl.innerHTML=html;
+  document.querySelectorAll('.edit-input').forEach(inp=>{
+    inp.addEventListener('keydown',e=>{
+      if(e.key==='Enter')saveEdit(editingId);
+      if(e.key==='Escape')cancelEdit();
+    });
+  });
+}
+
+/* Warn before close if unsaved */
+window.addEventListener('beforeunload',e=>{
+  if(hasUnsaved){e.preventDefault();e.returnValue='';}
+});
+
+/* Show load banner on open */
+window.addEventListener('load',()=>{
+  document.getElementById('load-banner').style.display='flex';
+  render();
+});
+</script>
+</body>
+</html>
